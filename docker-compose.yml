@@ -1,0 +1,18 @@
+services:
+  ubuntu-lpic:
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu
+    container_name: ubuntu-lpic
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    
+  centos-lpic:
+    build:
+      context: .
+      dockerfile: Dockerfile.centos
+    container_name: centos-lpic
+    stdin_open: true
+    tty: true
+    restart: unless-stopped

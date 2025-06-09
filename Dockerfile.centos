@@ -1,0 +1,80 @@
+# Rocky Linux 9をベースイメージとして使用（CentOSの後継）
+FROM rockylinux:9
+
+# 環境変数を設定
+ENV TZ=Asia/Tokyo
+
+# DNFパッケージマネージャーを更新し、基本的なツールをインストール
+# --allowerasingオプションを使用してパッケージの競合を解決
+RUN dnf update -y && dnf install -y --allowerasing \
+    # 基本的なシステムツール
+    curl \
+    wget \
+    git \
+    vim \
+    nano \
+    tree \
+    unzip \
+    zip \
+    # ネットワークツール
+    net-tools \
+    iputils \
+    telnet \
+    nc \
+    # 開発ツール
+    gcc \
+    gcc-c++ \
+    make \
+    # その他のユーティリティ
+    jq \
+    tmux \
+    less \
+    gawk \
+    mlocate \
+    man-db \
+    info \
+    # システム監視ツール
+    procps-ng \
+    lsof \
+    # ファイル操作ツール
+    rsync \
+    tar \
+    gzip \
+    # 権限・ユーザー管理ツール
+    sudo \
+    && dnf clean all
+
+# 日本語ロケールを設定
+RUN dnf install -y glibc-langpack-ja \
+    && dnf clean all
+
+# 環境変数でロケールを設定
+ENV LANG=ja_JP.UTF-8
+ENV LANGUAGE=ja_JP:ja
+ENV LC_ALL=ja_JP.UTF-8
+
+# 一般ユーザーを作成
+RUN useradd -m -s /bin/bash developer && \
+    echo 'developer:developer' | chpasswd && \
+    usermod -aG wheel developer
+
+# sudoの設定（wheelグループのパスワードなし実行を有効化）
+RUN echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
+
+# 作業ディレクトリを設定
+WORKDIR /home/developer
+
+# ユーザーをdeveloperに切り替え
+USER developer
+
+# シェルの設定ファイルに便利なエイリアスを追加
+RUN echo 'alias ll="ls -alF --color=auto"' >> ~/.bashrc && \
+    echo 'alias la="ls -A --color=auto"' >> ~/.bashrc && \
+    echo 'alias l="ls -CF --color=auto"' >> ~/.bashrc && \
+    echo 'alias ls="ls --color=auto"' >> ~/.bashrc && \
+    echo 'alias ..="cd .."' >> ~/.bashrc && \
+    echo 'alias ...="cd ../.."' >> ~/.bashrc && \
+    echo 'export PS1="\[\033[01;31m\]\u@rocky\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "' >> ~/.bashrc
+
+# デフォルトコマンドをbashに設定
+CMD ["/bin/bash"]
